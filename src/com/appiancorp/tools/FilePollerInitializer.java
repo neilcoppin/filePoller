@@ -3,6 +3,7 @@ package com.appiancorp.tools;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -14,20 +15,22 @@ import org.jdom.input.SAXBuilder;
 import com.appiancorp.common.config.CacheConfigLoader;
 import com.appiancorp.services.ServiceContext;
 import com.appiancorp.services.ServiceContextFactory;
+import com.appiancorp.suiteapi.content.Content;
 import com.appiancorp.suiteapi.content.ContentConstants;
 import com.appiancorp.suiteapi.content.ContentService;
 import com.appiancorp.suiteapi.common.ServiceLocator;
 import com.appiancorp.suiteapi.common.exceptions.InvalidProcessModelException;
 import com.appiancorp.suiteapi.common.exceptions.InvalidUserException;
+import com.appiancorp.suiteapi.common.exceptions.InvalidVersionException;
 import com.appiancorp.suiteapi.common.exceptions.PrivilegeException;
 import com.appiancorp.suiteapi.personalization.UserService;
 import com.appiancorp.suiteapi.process.ProcessDesignService;
 import com.appiancorp.suiteapi.process.ProcessModel;
 import com.appiancorp.suiteapi.process.ProcessModel.Descriptor;
 import com.appiancorp.suiteapi.process.ProcessVariable;
-import com.appiancorp.suiteapi.content.ContentFilter;
+//import com.appiancorp.suiteapi.content.ContentFilter;
 import com.appiancorp.suiteapi.content.exceptions.InvalidContentException;
-import com.appiancorp.suiteapi.content.exceptions.InvalidTypeMaskException;
+//import com.appiancorp.suiteapi.content.exceptions.InvalidTypeMaskException;
 
 public class FilePollerInitializer {
   private ArrayList<FilePollerConfig> pollerConfigs;
@@ -47,11 +50,13 @@ public class FilePollerInitializer {
     Element inputDirectory = null;
     Element pollingInterval = null;
     Element knowledgeCenter = null;
+    Element knowledgeCenterId = null;
     Element docFolder = null;
+    Element docFolderId = null;
     Element saveDocAsPv = null;
     Element documentVariableName = null;
     String userNameString = "";
-    String kcName = "";
+    //String kcName = "";
     String folderName = "";
     String pollerName = "";
     String inputFileName = "";
@@ -64,20 +69,21 @@ public class FilePollerInitializer {
     ProcessDesignService _pds;
     UserService _us;
     SAXBuilder builder = new SAXBuilder();
+    Date date = new Date();
     
     try{
-    	System.out.println("About to Initialize Default Cache");
+    	System.out.println(date.toString() + ": About to Initialize Default Cache");
     	CacheConfigLoader.initializeDefaultCache();
-    	System.out.println("Default Cache initialized");
+    	System.out.println(date.toString() + ": Default Cache initialized");
     	
       //Parse xml document
-    	System.out.println("Parsing XML doc");
+    	System.out.println(date.toString() + ": Parsing XML doc");
       org.jdom.Document xmlDoc = builder.build(configFile);
       Element root = xmlDoc.getRootElement();
       @SuppressWarnings("unchecked")
 	List<Element> pollers = root.getChildren();
       if (pollers.size() == 0){
-    	  System.out.println("file poller config empty");
+    	  System.out.println(date.toString() + ": file poller config empty");
         log.error("file poller config empty");
         System.exit(0);
         }
@@ -109,7 +115,7 @@ public class FilePollerInitializer {
         name = ((Element)pollers.get(i)).getChild("name");
         pollerName = name.getText();
         poller.setName(pollerName);
-        System.out.println("Setting up file poller named " + pollerName);
+        System.out.println(date.toString() + ": Setting up file poller named " + pollerName);
         
         //get process model to pass file to
         processModelId = ((Element)pollers.get(i)).getChild("process-model-id");
@@ -136,7 +142,7 @@ public class FilePollerInitializer {
               continue;
              }
           }
-        System.out.println("Pointing poller at ProcessModel ID " + poller.getProcessModelId());
+        System.out.println(date.toString() + ": Pointing poller at ProcessModel ID " + poller.getProcessModelId());
     
           //get input directory
           inputDirectory = ((Element)pollers.get(i)).getChild("input-directory");
@@ -146,36 +152,56 @@ public class FilePollerInitializer {
           poller.setInputDirectory(inputFile);
         }
         else {
-        	System.out.println("Input Directory " + inputFileName + "specified for file poller " + pollerName + " does not exist or is not a directory");
+        	System.out.println(date.toString() + ": Input Directory " + inputFileName + "specified for file poller " + pollerName + " does not exist or is not a directory");
           log.error("Input Directory " + inputFileName + "specified for file poller " + pollerName + " does not exist or is not a directory");
           continue;
         }
-        System.out.println("Found input directory at " + inputFileName);
+        System.out.println(date.toString() + ": Found input directory at " + inputFileName);
         
         //set polling interval
         pollingInterval = ((Element)pollers.get(i)).getChild("polling-interval");
         interval = new Integer(pollingInterval.getText()).intValue();
         poller.setPollingInterval(interval);
-        System.out.println("Polling every " + interval + " seconds");
+        System.out.println(date.toString() + ": Polling every " + interval + " seconds");
        
         /*
          * This could need tidying up so that Constants.COUNT_ALL is not used.
          * */
-        //set knowledge center
-        knowledgeCenter = ((Element)pollers.get(i)).getChild("knowledge-center");
+        //search for knowledge center
+        /*knowledgeCenter = ((Element)pollers.get(i)).getChild("knowledge-center");
         kcName = knowledgeCenter.getText();
-        System.out.println("Attempting to locate KC " + kcName);
+        System.out.println(date.toString() + ": Attempting to locate KC " + kcName);
         ContentFilter filterKC = new ContentFilter(ContentConstants.TYPE_ANY_KC);
         filterKC.setName(kcName);
         Long[] knowledgeCenters = _kcs.getAdministratable(ContentConstants.KNOWLEDGE_ROOT, filterKC);
         Long kcId = knowledgeCenters[0];
+        System.out.println(date.toString() + ": Found KC ID " + kcId);
         
         if (kcId == null){
-        	System.out.println("KnowledgeCenter named "+ kcName + " specified for file poller " + pollerName + " not found");
+        	System.out.println(date.toString() + ": KnowledgeCenter named "+ kcName + " specified for file poller " + pollerName + " not found");
           log.error("KnowledgeCenter named "+ kcName + "specified for file poller " + pollerName + " not found");
           continue;
+         }*/
+        
+        //set KC
+        knowledgeCenterId = ((Element)pollers.get(i)).getChild("knowledge-center-id");
+        String kcIdString = knowledgeCenterId.getText();
+        Long kcId = Long.parseLong(kcIdString);
+        Content kc = _kcs.getVersion(kcId, ContentConstants.VERSION_CURRENT);
+        
+        //check actual KC name against specified name and id
+        knowledgeCenter = ((Element)pollers.get(i)).getChild("knowledge-center");
+        if (knowledgeCenter.getText().equals(kc.getDisplayName())){
+        	System.out.println(date.toString() + ": Actual KC name matches specified KC name");
+         }
+        else {
+        	System.out.println(date.toString() + ": Knowledge Center name does not match config ID");
+            log.error("Knowledge Center name does not match config ID");
+            continue;
          }
         
+        
+        /*
         //revised find folder to load files to
         docFolder = ((Element)pollers.get(i)).getChild("document-creation-folder");
         folderName = docFolder.getText();
@@ -190,10 +216,33 @@ public class FilePollerInitializer {
         }
         
         if (!folderExists){
-        	System.out.println("Folder named "+ folderName + " for file poller " + pollerName + " not found");
+        	System.out.println(date.toString() + ": Folder named "+ folderName + " for file poller " + pollerName + " not found");
           log.error("Folder named "+ folderName + " for file poller " + pollerName + " not found");
           continue;
           }    
+        System.out.println(date.toString() + ": Found folder ID " + folderId);
+        */
+        
+        //get folder
+        docFolderId = ((Element)pollers.get(i)).getChild("document-creation-folder-id");
+        String docFolderIdString = docFolderId.getText();
+        Long folderId = Long.parseLong(docFolderIdString);
+        if(folderId != null){
+        	Content folder = _kcs.getVersion(folderId, ContentConstants.VERSION_CURRENT);
+        	docFolder = ((Element)pollers.get(i)).getChild("document-creation-folder");
+        	if(docFolder.getText().equals(folder.getDisplayName())){
+        		System.out.println(date.toString() + ": Actual folder name matches specified folder name");
+        		poller.setFolderId(folderId);
+        	}
+        }
+        else{
+        	System.out.println(date.toString() + ": Folder named "+ folderName + " for file poller " 
+        			+ pollerName + " not found or does not match specified folder");
+            log.error("Folder named "+ folderName + " for file poller " + pollerName 
+            		+ " not found or does not match specified folder");
+            continue;
+        }
+        
         
         //Should the document be saved to process variable
         saveDocAsPv = ((Element)pollers.get(i)).getChild("save-doc-as-pv");
@@ -252,7 +301,8 @@ public class FilePollerInitializer {
           }
           poller.setDocumentVariableName(pvName);
         }
-        
+       System.out.println(date.toString() + ": Config setup complete for " + pollerName); 
+       System.out.println();
        pollerConfigs.add(poller);
       }
     }   
@@ -266,8 +316,12 @@ public class FilePollerInitializer {
         log.error(e,e);
       } catch (InvalidContentException e) {
     	  log.error(e,e);
-	} catch (InvalidTypeMaskException e) {
-		log.error(e,e);
+	} catch (InvalidVersionException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	} catch (PrivilegeException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
 	}     
 	
 	return pollerConfigs;    

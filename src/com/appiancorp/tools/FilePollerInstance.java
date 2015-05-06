@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.util.Date;
 
 import org.apache.log4j.Logger;
 
@@ -107,7 +108,10 @@ public class FilePollerInstance extends Thread {
     Document doc;
     ProcessVariable[] Vars = new ProcessVariable[0];
     String docVariableName = config.getDocumentVariableName();
-    System.out.println(config.getName()+ " is listening...");
+    Date date = new Date();
+    
+    
+    System.out.println(date.toString() + ": " + config.getName()+ " is listening...");
     
     while(true){
     	
